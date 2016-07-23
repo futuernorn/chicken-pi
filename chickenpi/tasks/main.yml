@@ -1,0 +1,3 @@
+---
+# tasks file for chickenpi
+- include_vars: {{ workspace_location }}/private_vars/credentials.yml

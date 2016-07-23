@@ -1,0 +1,1 @@
+chickenpi ansible_ssh_host=raspberrypi.local
