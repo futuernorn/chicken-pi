@@ -1,3 +1,83 @@
 ---
 # tasks file for chickenpi
-- include_vars: {{ workspace_location }}/private_vars/credentials.yml
+
+- name: Set hostname
+  hostname: name=chicken-pi
+  become: true
+
+- name: Push out /etc/hosts
+  copy:
+    src: "etc/hosts"
+    dest: "/etc/hosts"
+    owner: root
+    group: root
+    mode: 0644
+  become: true
+
+- name: Ensure directory /home/pi/ssh
+  command: "install -d -m 700 /home/pi/.ssh"
+
+- name: Setup authorized ssh keys
+  authorized_key:
+    user: pi
+    key: "{{ ssh_public_key }}"
+
+- name: Push out sshd config
+  copy:
+    src: "etc/ssh/sshd.config"
+    dest: "/etc/ssh/sshd.config"
+    owner: root
+    group: root
+    mode: 0644
+  become: true
+  notify: sshd reload
+
+- name: Template /etc/wpa_supplicant/wpa_supplicant.conf
+  template:
+    src: "etc/wpa_supplicant/wpa_supplicant.conf"
+    dest: "/etc/wpa_supplicant/wpa_supplicant.conf"
+    owner: root
+    group: root
+    mode: 0600
+  become: true
+
+- name: Template CloudFlare dynamic DNS script
+  template:
+    src: "usr/local/bin/cf-ddns.sh"
+    dest: "/usr/local/bin/cf-ddns.sh"
+    owner: root
+    group: root
+    mode: 0700
+  become: true
+
+- name: Set CloudFlare dynamic DNS script to run on a cron
+  cron:
+    name: "cf_ddns"
+    job: "/usr/local/bin/cf-ddns.sh"
+    minute: "*/30"
+    state: present
+
+- name: Install needed packages
+  apt: pkg={{ item }} state=present
+  with_items:
+    - git
+    - libmp3lame-dev
+    - libx264-dev
+    - screen
+
+- name: Download ffmpeg source
+  git: repo=git://source.ffmpeg.org/ffmpeg.git
+       dest=/usr/src/ffmpeg
+       accept_hostkey=True
+  become: true
+
+
+- name: Compile ffmpeg
+  shell: "./configure --enable-gpl --enable-nonfree --enable-libx264 --enable-libmp3lame && make -j$(nproc) && make install"
+  become: true
+
+- name: Shutdown
+  command: /sbin/shutdown -t now
+  become: true
+
+#https://github.com/Tomtomgo/raspberry_livestream

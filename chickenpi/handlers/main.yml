@@ -1,2 +1,6 @@
 ---
 # handlers file for chickenpi
+
+- name: sshd reload
+  service: name=sshd state=reloaded
+  become: true

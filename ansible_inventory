@@ -1,1 +1,1 @@
-chickenpi ansible_ssh_host=raspberrypi.local
+chickenpi ansible_ssh_host=raspberry.local ansible_ssh_user=pi ansible_ssh_pass=raspberry

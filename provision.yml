@@ -1,0 +1,10 @@
+---
+
+- hosts: chickenpi
+
+  pre_tasks:
+    - name: Load private variables
+      include_vars: "private_vars/credentials.yml"
+
+  roles:
+    - chickenpi
