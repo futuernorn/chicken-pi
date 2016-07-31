@@ -41,6 +41,24 @@
     mode: 0600
   become: true
 
+- name: Template low_bat_shutdown script
+  template:
+    src: "usr/local/bin/low_bat_shutdown"
+    dest: "/usr/local/bin/low_bat_shutdown"
+    owner: root
+    group: root
+    mode: 0700
+  become: true
+
+- name: Set low_bat_shutdown script to run every minute
+  cron:
+    name: "low_bat_shutdown"
+    cron_file: "low_bat_shutown"
+    job: "/usr/local/bin/low_bat_shutdown 2>&1 | logger -t LOW_BAT_SHUTDOWN"
+    state: present
+    user: root
+  become: true
+
 - name: Template CloudFlare dynamic DNS script
   template:
     src: "usr/local/bin/cf-ddns.sh"
@@ -53,9 +71,12 @@
 - name: Set CloudFlare dynamic DNS script to run on a cron
   cron:
     name: "cf_ddns"
+    cron_file: "cf_ddns"
     job: "/usr/local/bin/cf-ddns.sh"
     minute: "*/30"
     state: present
+    user: root
+  become: true
 
 - name: Install needed packages
   apt: pkg={{ item }} state=present
